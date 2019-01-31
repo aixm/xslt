@@ -60,7 +60,7 @@ TBD - add license and disclaimer...
 </xsl:text>
             <xsl:value-of select="gml:validTime/gml:TimePeriod/gml:beginPosition"/><xsl:text>, </xsl:text>
             <xsl:choose>
-                <xsl:when  test="gml:validTime/gml:TimePeriod/gml:endPosition">
+                <xsl:when  test="not(gml:validTime/gml:TimePeriod/gml:endPosition/text())">
                     <xsl:value-of select="gml:validTime/gml:TimePeriod/gml:endPosition/@indeterminatePosition"/><xsl:text>, </xsl:text>
                 </xsl:when>
                 <xsl:otherwise>
