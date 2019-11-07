@@ -45,25 +45,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:aixm_ds_xslt="http://www.aixm.aero/xslt">
-
-    <xsl:import href="AIXM_DS_Shared_Functions-0.1-2019-01.xslt"/>
-    <!-- Imports functions that could be re-used by other Data Set processing stylesheets, such as a function that converts DD.dddd into DDMMSS.ssH, etc. 
-        This includes a local copy of the FunctX XSLT Function Library, see http://www.xsltfunctions.com --> 
     
-      
     <xsl:output method="text"/>
     
     <xsl:mode name="skip-unknown" on-no-match="shallow-skip"/>
      
-    <xsl:accumulator name="srsName" as="xs:string?" initial-value="()" streamable="yes">
-        <xsl:accumulator-rule match="aixm:Point" select="string(@srsName)"/>
-        <!-- TBD - need to expand this to other possibilitie than aixm:Point. Need to consider the full inhetritance chain for srsName, see the Profile document -->
-    </xsl:accumulator>
-    
-    <xsl:template match="/">
-        <xsl:stream href="EA_AIP_DS_FULL_20170701.xml" use-accumulators="#all">
+     <xsl:template match="/">
+         <xsl:stream href="EA_AIP_DS_FULL_20170701.xml" use-accumulators="#all">
         <!-- this XSLT is initiated on a dummy.xml file, which in turn launches the processing in streaming mode of the AIP data set. The actual AIP data set file name is specified above --> 
-            <xsl:text>valid from, valid until, Name-code designator, Coordinates, Remarks</xsl:text>
+            <xsl:text>Designator, Name, IATA Code</xsl:text>
             <xsl:apply-templates select="*/message:hasMember/copy-of(.)" mode="skip-unknown"/>
             <!-- this is burst-streaming mode, where each hasMember is treated as a small xml document and may be processed with dedicated templates that do not have to be streamable. 
                 Using burst-streaming provides more flexibility for the future evolution of this script -->
@@ -75,30 +65,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         <xsl:apply-templates mode="skip-unknown"/>
     </xsl:template>
     
-    <xsl:template match="aixm:DesignatedPoint"  mode="skip-unknown">
-        <xsl:for-each select="aixm:timeSlice/aixm:DesignatedPointTimeSlice">
+    <xsl:template match="aixm:AirportHeliport"  mode="skip-unknown">
+        <xsl:for-each select="aixm:timeSlice/aixm:AirportHeliportTimeSlice[1]">
             <!-- first insert a new line in the CSV -->
             <xsl:text>
 </xsl:text>
-            <xsl:value-of select="gml:validTime/gml:TimePeriod/gml:beginPosition"/><xsl:text>, </xsl:text>
-            <xsl:choose>
-                <xsl:when  test="not(gml:validTime/gml:TimePeriod/gml:endPosition/text())">
-                    <xsl:value-of select="gml:validTime/gml:TimePeriod/gml:endPosition/@indeterminatePosition"/><xsl:text>, </xsl:text>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:value-of select="gml:validTime/gml:TimePeriod/gml:endPosition"/><xsl:text>, </xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
             <xsl:value-of select="aixm:designator"/><xsl:text>, </xsl:text>
-            <xsl:apply-templates select="aixm:location/aixm:Point"></xsl:apply-templates>
-            <!-- TBD - might need to support other alternatives for expressing the point position, such as gml:Point -->
+            <xsl:value-of select="aixm:name"/><xsl:text>, </xsl:text>
+            <xsl:value-of select="aixm:designatorIATA"/>
         </xsl:for-each>
     </xsl:template>
-   
-    <xsl:template match="aixm:Point">
-        <xsl:variable name="mySrsName" select="accumulator-before('srsName')"/>
-        <xsl:value-of select="aixm_ds_xslt:geo_deg_to_dms(gml:pos, $mySrsName)"/>
-        <xsl:text>, </xsl:text>
-     </xsl:template>
 
 </xsl:transform>
